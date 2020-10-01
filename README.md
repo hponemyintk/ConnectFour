@@ -1,5 +1,5 @@
 # ConnectFour
-A connect 4 game AI implemented using minimax algorithm with alpha-beta pruning
+A connect 4 game implemented using minimax algorithm with alpha-beta pruning
 
 <img src="connect4wAI_demo.gif" width="500" height="500" />
 
@@ -12,7 +12,7 @@ You will need python3 and tkinter to run the game. Type the following command in
 brew install python3 --with-tcl-tk
 ```
 
-To play again the minimax AI, run the python script using the following command:
+To play game with the minimax AI, run the python script using the following command:
 
 ```
 python3 connect4_wAI.py
