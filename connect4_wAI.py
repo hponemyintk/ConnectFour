@@ -92,8 +92,8 @@ def draw_cur_state(board):
     pygame.display.update()
 
 
-def evaluate_window(window, piece):
-    # for minimax 
+def eval_state(window, piece):
+    # for dominimax 
     opp_piece = PLAYER_PIECE
     if piece == PLAYER_PIECE:
         opp_piece = AI_PIECE
@@ -111,7 +111,7 @@ def evaluate_window(window, piece):
     return score
 
 
-def score_position(board, piece):
+def pos2reward(board, piece):
     score= 0
 
     # Score center column
@@ -124,35 +124,35 @@ def score_position(board, piece):
         row_array = [int(i) for i in list(board[rr,:])]
         for cc in range(Col_ct-3):
             window = row_array[cc:cc+WINDOW_LENGTH]
-            score += evaluate_window(window, piece)
+            score += eval_state(window, piece)
 
     # score vertical
     for cc in range(Col_ct):
         col_array = [int(i) for i in list(board[:,cc])]
         for rr in range(Row_ct-3):
             window = col_array[rr:rr+WINDOW_LENGTH]
-            score += evaluate_window(window, piece)
+            score += eval_state(window, piece)
 
     # positive slope
     for rr in range(Row_ct-3):
         for cc in range(Col_ct-3):
             window = [int(board[rr+i,cc+i]) for i in range(WINDOW_LENGTH)]
-            score += evaluate_window(window, piece)
+            score += eval_state(window, piece)
 
     # negative slope
     for rr in range(3, Row_ct):
         for cc in range(Col_ct-3):
             window = [int(board[rr-i,cc+i]) for i in range(WINDOW_LENGTH)]
-            score += evaluate_window(window, piece)
+            score += eval_state(window, piece)
     return score
 
 
 def is_terminal_node(board):
-    return end_cases(board, PLAYER_PIECE) or end_cases(board, AI_PIECE) or len(get_valid_locations(board)) == 0
+    return end_cases(board, PLAYER_PIECE) or end_cases(board, AI_PIECE) or len(get_possible_mov(board)) == 0
 
 
-def minimax(board, depth, alpha, beta, maximizingPlayer):
-    valid_locations = get_valid_locations(board)
+def dominimax(board, depth, alpha, beta, maximizingPlayer):
+    valid_locations = get_possible_mov(board)
     is_terminal = is_terminal_node(board)
     if depth == 0 or is_terminal:
         if is_terminal:
@@ -163,7 +163,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             else:           # No more valid moves
                 return (None, 0)
         else: # when depth is zero
-            return (None, score_position(board, AI_PIECE))
+            return (None, pos2reward(board, AI_PIECE))
 
     if maximizingPlayer:
         value = -np.inf
@@ -172,7 +172,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             row = get_free_row(board, col)
             b_copy = board.copy()
             fill_tile(b_copy, row, col, AI_PIECE)
-            new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
+            new_score = dominimax(b_copy, depth-1, alpha, beta, False)[1]
             if new_score > value:
                 value = new_score
                 column = col
@@ -188,7 +188,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             row = get_free_row(board, col)
             b_copy = board.copy()
             fill_tile(b_copy, row, col, PLAYER_PIECE)
-            new_score = minimax(b_copy, depth-1, alpha, beta, True)[1]
+            new_score = dominimax(b_copy, depth-1, alpha, beta, True)[1]
             if new_score < value:
                 value = new_score
                 column = col
@@ -198,7 +198,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
         return column, value
 
 
-def get_valid_locations(board):
+def get_possible_mov(board):
     valid_locations = []
     for col in range(Col_ct):
         if check_tile_status(board, col):
@@ -206,15 +206,15 @@ def get_valid_locations(board):
     return valid_locations
 
 
-def pick_best_move(board, piece):
-    valid_locations = get_valid_locations(board)
+def choose_best_move(board, piece):
+    valid_locations = get_possible_mov(board)
     best_score = 0
     best_col = random.choice(valid_locations)
     for col in valid_locations:
         row = get_free_row(board, col)
         temp_board = board.copy()
         fill_tile(temp_board, row, col, piece)
-        score = score_position(temp_board, piece)
+        score = pos2reward(temp_board, piece)
         if score > best_score:
             best_score = score
             best_col = col
@@ -278,9 +278,9 @@ while not game_over:
     # Ask for player 2 input
     if turn == AI and not game_over:
         # col = random.randint(0,Col_ct-1)
-        # col = pick_best_move(board,AI_PIECE)
+        # col = choose_best_move(board,AI_PIECE)
         pygame.event.set_blocked(None)
-        col, minimax_score = minimax(board, 5, -np.inf, np.inf, True)
+        col, dominimax_score = dominimax(board, 5, -np.inf, np.inf, True)
         if check_tile_status(board,col):
             row = get_free_row(board,col)
             fill_tile(board,row,col,AI_PIECE)
