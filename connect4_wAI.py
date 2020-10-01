@@ -147,13 +147,13 @@ def pos2reward(board, piece):
     return score
 
 
-def is_terminal_node(board):
+def end_game(board):
     return end_cases(board, PLAYER_PIECE) or end_cases(board, AI_PIECE) or len(get_possible_mov(board)) == 0
 
 
 def dominimax(board, depth, alpha, beta, maximizingPlayer):
     valid_locations = get_possible_mov(board)
-    is_terminal = is_terminal_node(board)
+    is_terminal = end_game(board)
     if depth == 0 or is_terminal:
         if is_terminal:
             if end_cases(board, AI_PIECE):
